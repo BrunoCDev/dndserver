@@ -4,6 +4,7 @@ from dndserver.database import db
 from dndserver.enums import CharacterClass, Gender
 from dndserver.models import Character
 from dndserver.objects import items
+from dndserver.handlers.item import Rarity, ItemType
 from dndserver.protos import PacketCommand as pc
 from dndserver.protos import Item as item
 from dndserver.protos.Account import (
@@ -57,16 +58,7 @@ def list_characters(ctx, msg):
                 level=result.level,
                 characterClass=CharacterClass(result.character_class).value,
                 gender=Gender(result.gender).value,
-                equipItemList=[
-                    items.generate_torch(),
-                    items.generate_roundshield(),
-                    items.generate_lantern(),
-                    items.generate_sword(),
-                    items.generate_pants(),
-                    items.generate_tunic(),
-                    items.generate_bandage(),
-                    items.generate_helm()
-                ],
+                equipItemList=create_items_per_class(CharacterClass(result.character_class).value),
                 createAt=result.created_at.int_timestamp,
                 # lastloginDate=result.last_logged_at  # TODO: Need to implement access logs.
             )
@@ -151,15 +143,7 @@ def character_info(ctx, msg):
             characterId=str(character.id),
             gender=Gender(character.gender).value,
             level=character.level,
-            CharacterItemList=[
-                items.generate_helm(),
-                items.generate_torch(),
-                items.generate_lantern(),
-                items.generate_sword(),
-                items.generate_pants(),
-                items.generate_tunic(),
-                items.generate_bandage(),
-            ],
+            CharacterItemList=create_items_per_class(CharacterClass(character.character_class).value),
         ),
     )
 
@@ -290,3 +274,73 @@ def move_perks_and_skills(ctx, msg):
         query.perk0, query.perk1, query.perk2, query.perk3, query.skill0, query.skill1 = perks_skills
 
     return SS2C_CLASS_ITEM_MOVE_RES(result=pc.SUCCESS, oldMove=req.oldMove, newMove=req.newMove)
+def create_items_per_class(char_class):
+    if(CharacterClass.BARBARIAN.value == char_class):
+        return [items.generate_item("BattleAxe", ItemType.WEAPONS, Rarity.JUNK, 3, 10, 1),
+                items.generate_item("Lantern", ItemType.UTILITY, Rarity.JUNK, 3, 8, 2),
+                items.generate_item("FranciscaAxe", ItemType.UTILITY, Rarity.JUNK, 3, 14, 3, 3),
+                items.generate_item("HeavyBoots", ItemType.ARMORS, Rarity.JUNK, 3, 5, 4),
+                items.generate_item("Gjermundbu", ItemType.ARMORS, Rarity.JUNK, 3, 1, 5),
+                items.generate_item("ClothPants", ItemType.ARMORS, Rarity.JUNK, 3, 4, 6)]
+
+    if(CharacterClass.BARD.value == char_class):
+        return [items.generate_item("Lute", ItemType.WEAPONS, Rarity.JUNK, 3, 10, 3, 11),
+                items.generate_item("Torch", ItemType.WEAPONS, Rarity.JUNK, 3, 13, 12),
+                items.generate_item("Rapier", ItemType.WEAPONS, Rarity.JUNK, 3, 12, 13),
+                items.generate_item("Bandage", ItemType.CONSUMABLES, Rarity.JUNK, 3, 8, 14),
+                items.generate_item("Lantern", ItemType.UTILITY, Rarity.JUNK, 3, 14, 15),
+                items.generate_item("ClothPants", ItemType.ARMORS, Rarity.JUNK, 3, 4, 16),
+                # Missing WandererAttire from json data so using PaddedTunic instead
+                # items.generate_item("WandererAttire", ItemType.ARMORS, Rarity.JUNK, 3, 2, 6),
+                items.generate_item("PaddedTunic", ItemType.ARMORS, Rarity.JUNK, 3, 2, 17)
+                ]
+    
+    if(CharacterClass.CLERIC.value == char_class):
+        return [items.generate_item("FlangedMace", ItemType.WEAPONS, Rarity.JUNK, 3, 10, 21),
+                items.generate_item("Buckler", ItemType.WEAPONS, Rarity.JUNK, 3, 11, 22),
+                items.generate_item("WizardStaff", ItemType.WEAPONS, Rarity.JUNK, 3, 12, 23),
+                items.generate_item("Lantern", ItemType.UTILITY, Rarity.JUNK, 3, 8, 24),
+                items.generate_item("Bandage", ItemType.UTILITY, Rarity.JUNK, 3, 14, 25),
+                items.generate_item("Frock", ItemType.ARMORS, Rarity.JUNK, 3, 2, 26),
+                items.generate_item("ClothPants", ItemType.ARMORS, Rarity.JUNK, 3, 4, 27),
+                items.generate_item("Bandage", ItemType.CONSUMABLES, Rarity.JUNK, 3, 14, 28)]
+    
+    if(CharacterClass.FIGHTER.value == char_class):
+        return [items.generate_item("ArmingSword", ItemType.WEAPONS, Rarity.JUNK, 3, 10, 31),
+                items.generate_item("RoundShield", ItemType.WEAPONS, Rarity.JUNK, 3, 11, 32),
+                items.generate_item("Torch", ItemType.WEAPONS, Rarity.JUNK, 3, 12, 33),
+                items.generate_item("Lantern", ItemType.UTILITY, Rarity.JUNK, 3, 8, 34),
+                items.generate_item("Bandage", ItemType.CONSUMABLES, Rarity.JUNK, 3, 14, 35),
+                items.generate_item("PaddedTunic", ItemType.ARMORS, Rarity.JUNK, 3, 2, 36),
+                items.generate_item("ClothPants", ItemType.ARMORS, Rarity.JUNK, 3, 4, 37)]
+    
+    if(CharacterClass.RANGER.value == char_class):
+        return [items.generate_item("RecurveBow", ItemType.WEAPONS, Rarity.JUNK, 3, 10, 41),
+                items.generate_item("ShortSword", ItemType.WEAPONS, Rarity.JUNK, 3, 12, 42),
+                items.generate_item("Lantern", ItemType.UTILITY, Rarity.JUNK, 3, 8, 43),
+                items.generate_item("HuntingTrap", ItemType.UTILITY, Rarity.JUNK, 3, 14, 44),
+                items.generate_item("CampfireKit", ItemType.UTILITY, Rarity.JUNK, 3, 15, 45),
+                items.generate_item("Doublet", ItemType.ARMORS, Rarity.JUNK, 3, 2, 46),
+                items.generate_item("ClothPants", ItemType.ARMORS, Rarity.JUNK, 3, 4, 47),
+                items.generate_item("RangerHood", ItemType.ARMORS, Rarity.JUNK, 3, 1, 48),
+                items.generate_item("Arrow", ItemType.CONSUMABLES, Rarity.JUNK, 2, 0, 49, 15)]
+    
+    if(CharacterClass.ROGUE.value == char_class):
+        return [items.generate_item("RondelDagger", ItemType.WEAPONS, Rarity.JUNK, 3, 10, 51),
+                items.generate_item("CastillonDagger", ItemType.WEAPONS, Rarity.JUNK, 3, 11, 52),
+                items.generate_item("Torch", ItemType.WEAPONS, Rarity.JUNK, 3, 12, 53),
+                items.generate_item("Lantern", ItemType.UTILITY, Rarity.JUNK, 3, 8, 54),
+                items.generate_item("ThrowingKnife", ItemType.UTILITY, Rarity.JUNK, 3, 14, 55, 3),
+                items.generate_item("Doublet", ItemType.ARMORS, Rarity.JUNK, 3, 2, 56),
+                items.generate_item("ClothPants", ItemType.ARMORS, Rarity.JUNK, 3, 4, 57),
+                items.generate_item("RogueCowl", ItemType.ARMORS, Rarity.JUNK, 3, 1, 58)]
+    
+    if(CharacterClass.WIZARD.value == char_class):
+        return [items.generate_item("WizardStaff", ItemType.WEAPONS, Rarity.JUNK, 3, 10, 51),
+                items.generate_item("Torch", ItemType.WEAPONS, Rarity.JUNK, 3, 12, 53),
+                items.generate_item("Lantern", ItemType.UTILITY, Rarity.JUNK, 3, 8, 54),
+                items.generate_item("ProtectionPotion", ItemType.CONSUMABLES, Rarity.JUNK, 3, 14, 55),
+                items.generate_item("Frock", ItemType.ARMORS, Rarity.JUNK, 3, 2, 56),
+                items.generate_item("ClothPants", ItemType.ARMORS, Rarity.JUNK, 3, 4, 57),
+                items.generate_item("WizardHat", ItemType.ARMORS, Rarity.JUNK, 3, 1, 58),
+                items.generate_item("WizardShoes", ItemType.ARMORS, Rarity.JUNK, 3, 5, 59)]
