@@ -1,14 +1,12 @@
 from loguru import logger
 
 from dndserver.enums import CharacterClass, Gender
-from dndserver.objects.items import (generate_helm, generate_torch, generate_roundshield,
-                                     generate_lantern, generate_sword, generate_pants,
-                                     generate_tunic, generate_bandage)
 from dndserver.protos.Character import SACCOUNT_NICKNAME, SCHARACTER_PARTY_INFO
 from dndserver.protos.Party import (SS2C_PARTY_INVITE_NOT, SC2S_PARTY_INVITE_REQ, SC2S_PARTY_INVITE_ANSWER_REQ,
                                     SS2C_PARTY_INVITE_RES, SS2C_PARTY_INVITE_ANSWER_RES,
                                     SS2C_PARTY_INVITE_ANSWER_RESULT_NOT, SS2C_PARTY_MEMBER_INFO_NOT)
 from dndserver.protos import PacketCommand as pc
+from dndserver.handlers.character import create_items_per_class
 from dndserver.sessions import sessions
 from dndserver.utils import get_party_by_account_id, get_user_by_account_id, get_user_by_nickname, make_header
 
@@ -124,11 +122,7 @@ def send_party_info_notification(party, user):
         info.isPartyLeader = True if party.leader == user else False
         info.isReady = 0  # Need to unhardcode these 2
         info.isInGame = 0
-        info.equipItemList.extend([
-            generate_helm(), generate_torch(), generate_roundshield(),
-            generate_lantern(), generate_sword(), generate_pants(),
-            generate_tunic(), generate_bandage()
-        ])
+        info.equipItemList.extend(create_items_per_class(CharacterClass(user.character_class).value))
         info.partyIdx = party.id
         notify.playPartyUserInfoData.append(info)
 
